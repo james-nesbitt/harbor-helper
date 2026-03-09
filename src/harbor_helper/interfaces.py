@@ -3,8 +3,13 @@ Abstract interfaces for external service integrations.
 Allows for mocking and multi-service support (NFR 7).
 """
 
-from typing import Protocol
-from .models import RequestContext, ProposedAction, ExecutionResult
+from typing import Protocol, Dict, Any
+from .models import (
+    RequestContext,
+    ProposedAction,
+    ExecutionResult,
+    ActionKind,
+)
 
 
 class JIRAClient(Protocol):

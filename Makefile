@@ -7,15 +7,22 @@ install:
 
 install-dev:
 	uv sync --all-extras
+	git config core.hooksPath .githooks
 
 test:
 	uv run pytest tests/ -v --cov=src/harbor_helper --cov-report=term-missing
+
+test-all:
+	uv run pytest tests/ -v --run-ollama --cov=src/harbor_helper --cov-report=term-missing
 
 lint:
 	uv run ruff check .
 
 format:
 	uv run ruff format .
+
+check: lint
+	uv run ruff format --check .
 
 # --- Local development configuration ---
 OLLAMA_URL ?= http://localhost:11434/api/chat

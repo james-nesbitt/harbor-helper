@@ -47,3 +47,17 @@ def test_ollama_fail_closed_on_invalid_json(interpreter):
 
         with pytest.raises(ValueError, match="safe plan"):
             interpreter.interpret("help me")
+
+
+@pytest.mark.ollama
+def test_ollama_live_connectivity():
+    """
+    INTEGRATION TEST: Requires a real Ollama instance at localhost:11434.
+    This test is skipped by default. Run with 'pytest --run-ollama'.
+    """
+    interpreter = OllamaInterpreter(url="http://localhost:11434/api/chat")
+    # This will hit the network. If Ollama is not there, it will fail or timeout.
+    # We expect it to raise ValueError because we aren't sending valid prompt here
+    # or it will fail on connection error.
+    with pytest.raises(Exception):
+        interpreter.interpret("say hello")

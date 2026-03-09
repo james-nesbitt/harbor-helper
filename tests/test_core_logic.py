@@ -33,9 +33,7 @@ def test_peer_review_enforcement(
     ctx = RequestContext(
         "new project", "alice", "chan-1", "ts-1", jira_key="PRODENG-123"
     )
-    action = ProposedAction(
-        ActionKind.CREATE_PROJECT, "dev", "sum", "det", "re", {}
-    )
+    action = ProposedAction(ActionKind.CREATE_PROJECT, "dev", "sum", "det", "re", {})
 
     # Alice tries to approve her own request
     helper.handle_approval(ctx, action, approver_id="alice")
@@ -155,7 +153,12 @@ def test_existence_validation_rejection(
 
     # LLM proposes the action
     action = ProposedAction(
-        ActionKind.CREATE_PROJECT, "dev", "Create Alpha", "Details", "Reasoning", {"project_name": "alpha"}
+        ActionKind.CREATE_PROJECT,
+        "dev",
+        "Create Alpha",
+        "Details",
+        "Reasoning",
+        {"project_name": "alpha"},
     )
     mock_interpreter.interpret.return_value = action
 
@@ -165,9 +168,11 @@ def test_existence_validation_rejection(
     helper.handle_request(ctx)
 
     # Verify: Request rejected, never asked for approval
-    mock_harbor.resource_exists.assert_called_once_with(action.kind, action.target_id, action.payload)
+    mock_harbor.resource_exists.assert_called_once_with(
+        action.kind, action.target_id, action.payload
+    )
     mock_messenger.ask_for_approval.assert_not_called()
-    
+
     args, _ = mock_messenger.reply.call_args
     assert "already exists" in args[1]
     mock_jira.update_status.assert_any_call("PRODENG-123", "REJECTED")
