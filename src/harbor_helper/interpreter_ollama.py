@@ -19,10 +19,14 @@ class LLMResponse(BaseModel):
 
 class OllamaInterpreter:
     def __init__(
-        self, model: str = "mistral", url: str = "http://localhost:11434/api/chat"
+        self,
+        model: str = "mistral",
+        url: str = "http://localhost:11434/api/chat",
+        verbose: bool = False,
     ):
         self.model = model
         self.url = url
+        self.verbose = verbose
 
     def interpret(self, raw_text: str) -> ProposedAction:
         prompt = f"""
@@ -38,6 +42,9 @@ class OllamaInterpreter:
         }}
         """
 
+        if self.verbose:
+            print(f"\n--- LLM PROMPT ---\n{prompt.strip()}\n------------------\n")
+
         try:
             response = requests.post(
                 self.url,
@@ -47,10 +54,13 @@ class OllamaInterpreter:
                     "stream": False,
                     "format": "json",
                 },
-                timeout=30,
+                timeout=120,
             )
             response.raise_for_status()
             content = response.json().get("message", {}).get("content", "")
+
+            if self.verbose:
+                print(f"--- LLM RAW RESPONSE ---\n{content.strip()}\n------------------------\n")
 
             # Use Pydantic to validate the LLM's output - Fail Closed if invalid
             validated = LLMResponse.model_validate_json(content)

@@ -36,6 +36,7 @@ Feature set 1: Harbor OCI registries: various Harbor registries will be modified
 - Requirement 10: `uv` shall be used as the primary tool for Python environment management, dependency resolution, and tool execution.
 - Requirement 11: The root `README.md` shall be developer-oriented (installation, build instructions, development workflow). End-user and administrative usage documentation shall be stored in a dedicated `/docs` directory.
 - Requirement 12: The project should provide local development tooling to simulate the application's behavior. This tooling should allow running the agency's interpretation and approval workflow using mocks for Slack, JIRA, and Harbor.
+- Requirement 13: Local development tooling shall support a verbose mode that displays the full LLM prompt, the raw LLM response, and all simulated side-effects (e.g., JIRA comments) to facilitate prompt engineering and debugging.
 
 ## 3. User Stories / Use Cases
 

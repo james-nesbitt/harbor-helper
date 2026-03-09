@@ -28,6 +28,10 @@ run:
 run-stub:
 	uv run harbor-helper-local --non-interactive --ollama-url $(OLLAMA_URL) --model $(LLM_MODEL) "create a new robot account"
 
+# Interactive developer REPL (Requirement 13)
+repl:
+	uv run harbor-helper-local --repl --verbose --ollama-url $(OLLAMA_URL) --model $(LLM_MODEL)
+
 build:
 	uv build
 

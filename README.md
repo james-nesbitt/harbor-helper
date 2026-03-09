@@ -31,6 +31,9 @@ You can run the full agent workflow locally using mocks. This is the preferred w
 # INTERACTIVE: Follow the full flow, including approval prompt
 make run
 
+# DEVELOPER REPL: Communicate with a local LLM in a loop with verbose side-effects (NFR 13)
+make repl
+
 # NON-INTERACTIVE: Auto-approve using the stub/mock flow
 make run-stub
 

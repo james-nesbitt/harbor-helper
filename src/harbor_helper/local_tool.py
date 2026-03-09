@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description="Run Harbor Helper locally for testing.")
-    parser.add_argument("query", help="The raw user request (e.g., 'create project test')")
+    parser.add_argument("query", nargs='?', help="The raw user request (e.g., 'create project test')")
     parser.add_argument("--jira", help="A pre-existing JIRA ticket key (e.g., PRODENG-123)")
     parser.add_argument("--user", default="U123456", help="The simulated user ID (Slack ID format)")
     parser.add_argument("--channel", default="C123456", help="The simulated channel ID")
@@ -29,8 +29,13 @@ def main():
     parser.add_argument("--real-api", action="store_true", help="Use real API clients (requires ENV vars)")
     parser.add_argument("--ollama-url", default="http://localhost:11434/api/chat", help="Ollama API base URL")
     parser.add_argument("--model", default="mistral", help="LLM model name")
+    parser.add_argument("--verbose", action="store_true", help="Display LLM prompt, response, and side-effects")
+    parser.add_argument("--repl", action="store_true", help="Run in interactive REPL mode")
 
     args = parser.parse_args()
+
+    if not args.repl and not args.query:
+        parser.error("Either 'query' or '--repl' is required.")
 
     # Determine clients based on flag
     if args.real_api:
@@ -53,7 +58,7 @@ def main():
         messenger = MockMessenger(interactive=not args.non_interactive)
 
     # Use Ollama for interpretation (this tool's primary goal)
-    interpreter = OllamaInterpreter(model=args.model, url=args.ollama_url)
+    interpreter = OllamaInterpreter(model=args.model, url=args.ollama_url, verbose=args.verbose)
 
     # Core logic
     helper = HarborHelper(
@@ -64,51 +69,64 @@ def main():
         approved_engineers=[args.user, args.approver]
     )
 
-    # Simulate request
-    context = RequestContext(
-        raw_text=args.query,
-        requester_id=args.user,
-        channel_id=args.channel,
-        thread_ts=str(uuid.uuid4()),
-        jira_key=args.jira
-    )
+    def process_query(query, jira_key):
+        # Simulate request
+        context = RequestContext(
+            raw_text=query,
+            requester_id=args.user,
+            channel_id=args.channel,
+            thread_ts=str(uuid.uuid4()),
+            jira_key=jira_key
+        )
 
-    logger.info(f"Processing request: '{args.query}' from {args.user}")
-    
-    # Run interpretation and approval flow
-    # Since this is a CLI tool, we simulate the async Slack lifecycle
-    
-    # 1. HarborHelper.handle_request initiates interpretation and kicks off the Slack/JIRA flow
-    # To run this synchronously in a CLI, we rely on the fact that handle_request calls messenger.ask_for_approval
-    # We'll monkeypatch or slightly intercept this for the CLI experience if needed, 
-    # but the simplest way is to follow the natural flow.
-
-    # Intercepting the messenger so we can prompt for approval in the same CLI loop
-    original_approval = messenger.ask_for_approval
-    
-    def cli_approval_interceptor(ctx, action):
-        original_approval(ctx, action)
-        if args.non_interactive:
-            choice = 'y'
-        else:
-            choice = input("\n[CLI] Approve this action? (y/n/exit): ").lower().strip()
+        logger.info(f"Processing request: '{query}' from {args.user}")
         
-        if choice == 'y':
-            helper.handle_approval(ctx, action, args.approver)
-        elif choice == 'n':
-            helper.handle_rejection(ctx, action, args.approver)
-        else:
-            logger.info("Operation cancelled.")
-            sys.exit(0)
+        # Intercepting the messenger so we can prompt for approval in the same CLI loop
+        original_approval = messenger.ask_for_approval
+        
+        def cli_approval_interceptor(ctx, action):
+            original_approval(ctx, action)
+            if args.non_interactive:
+                choice = 'y'
+            else:
+                choice = input("\n[CLI] Approve this action? (y/n/exit): ").lower().strip()
+            
+            if choice == 'y':
+                helper.handle_approval(ctx, action, args.approver)
+            elif choice == 'n':
+                helper.handle_rejection(ctx, action, args.approver)
+            else:
+                logger.info("Operation cancelled.")
+                # We don't exit here if in REPL mode
+                if not args.repl:
+                    sys.exit(0)
 
-    # Reconnect the intercepted approval 
-    messenger.ask_for_approval = cli_approval_interceptor
+        # Reconnect the intercepted approval 
+        messenger.ask_for_approval = cli_approval_interceptor
 
-    try:
-        helper.handle_request(context)
-    except Exception as e:
-        logger.error(f"Error handling request: {e}")
-        sys.exit(1)
+        try:
+            helper.handle_request(context)
+        except Exception as e:
+            logger.error(f"Error handling request: {e}")
+            if not args.repl:
+                sys.exit(1)
+
+    if args.repl:
+        logger.info("Starting Harbor Helper REPL. Type 'exit' or use Ctrl+C to quit.")
+        while True:
+            try:
+                query = input("\n[REPL] Request > ").strip()
+                if query.lower() in ["exit", "quit"]:
+                    break
+                if not query:
+                    continue
+                jira_key = input("[REPL] JIRA Ticket (optional) > ").strip() or args.jira
+                process_query(query, jira_key)
+            except KeyboardInterrupt:
+                break
+        logger.info("Exiting REPL.")
+    else:
+        process_query(args.query, args.jira)
 
 if __name__ == "__main__":
     main()
