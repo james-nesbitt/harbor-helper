@@ -1,0 +1,13 @@
+# Non-sensitive config for harbor-helper (SPEC §5, §6, §7).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: harbor-helper-config
+  labels:
+    app: harbor-helper
+data:
+  HARBOR_HELPER_HARBOR_URL: "https://harbor.example.com"
+  HARBOR_HELPER_JIRA_URL: "https://your-domain.atlassian.net"
+  HARBOR_HELPER_JIRA_PROJECT_KEY: "OPS"
+  HARBOR_HELPER_MODEL: "mistral"
+  HARBOR_HELPER_OLLAMA_URL: "http://localhost:11434/api/chat"

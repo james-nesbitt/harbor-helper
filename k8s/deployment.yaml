@@ -1,0 +1,65 @@
+# Deployment for harbor-helper (SPEC §6).
+# OCI images: dev = registry.ci.mirantis.com/jnesbitt/, production = registry.mirantis.com/jnesbitt/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: harbor-helper
+  labels:
+    app: harbor-helper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: harbor-helper
+  template:
+    metadata:
+      labels:
+        app: harbor-helper
+    spec:
+      initContainers:
+        - name: model-puller
+          image: ollama/ollama:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - "ollama serve & sleep 5 && ollama pull mistral"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /root/.ollama
+      containers:
+        - name: harbor-helper
+          image: registry.ci.mirantis.com/jnesbitt/harbor-helper:0.1.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: harbor-helper-config
+            - secretRef:
+                name: harbor-helper-secrets
+          # Run the main harbor-helper application
+          command: ["python", "-m", "harbor_helper.main"]
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+        - name: ollama
+          image: ollama/ollama:latest
+          volumeMounts:
+            - name: model-storage
+              mountPath: /root/.ollama
+          ports:
+            - containerPort: 11434
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "4"
+          env:
+            - name: OLLAMA_MODELS
+              value: "/root/.ollama"
+      volumes:
+        - name: model-storage
+          emptyDir: {}

@@ -1,0 +1,21 @@
+# Reduce build context; keep image small (SPEC §7: podman)
+.git
+.gitignore
+*.md
+!README.md
+.pytest_cache
+.coverage
+htmlcov
+venv
+.venv
+__pycache__
+*.pyc
+*.egg-info
+dist
+build
+tests
+*.egg
+.env
+.env.*
+mcps
+.cursor
