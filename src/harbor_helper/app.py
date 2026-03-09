@@ -39,7 +39,8 @@ class HarborHelper:
         # 1.5. Check for JIRA project (SPEC Requirement 8 and workflow)
         # Every request MUST be associated with an existing JIRA ticket from the 'PRODENG' or 'IT' projects.
         is_valid_project = context.jira_key and (
-            context.jira_key.startswith("PRODENG-") or context.jira_key.startswith("IT-")
+            context.jira_key.startswith("PRODENG-")
+            or context.jira_key.startswith("IT-")
         )
         if not is_valid_project:
             self.messenger.reply(
@@ -60,7 +61,9 @@ class HarborHelper:
             action = self.interpreter.interpret(context.raw_text)
 
             # 3.5. Existence Check (INTENT: Be sure operation is correct)
-            if self.harbor.resource_exists(action.kind, action.target_id, action.payload):
+            if self.harbor.resource_exists(
+                action.kind, action.target_id, action.payload
+            ):
                 msg = f"Validation Error: The requested resource already exists on '{action.target_id}'."
                 self.messenger.reply(context, msg)
                 self.jira.add_comment(jira_key, msg)

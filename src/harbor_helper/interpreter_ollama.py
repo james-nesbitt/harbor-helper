@@ -71,7 +71,9 @@ class OllamaInterpreter:
             content = response.json().get("message", {}).get("content", "")
 
             if self.verbose:
-                print(f"--- LLM RAW RESPONSE ---\n{content.strip()}\n------------------------\n")
+                print(
+                    f"--- LLM RAW RESPONSE ---\n{content.strip()}\n------------------------\n"
+                )
 
             # Use Pydantic to validate the LLM's output - Fail Closed if invalid
             validated = LLMResponse.model_validate_json(content)

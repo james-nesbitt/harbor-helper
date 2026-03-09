@@ -4,11 +4,17 @@ Standard clients for JIRA and Harbor.
 
 import requests
 from typing import Dict, Any, List
-from .models import ProposedAction, ExecutionResult, RequestContext, ActionKind, HarborRegistryConfig
+from .models import (
+    ProposedAction,
+    ExecutionResult,
+    RequestContext,
+    ActionKind,
+    HarborRegistryConfig,
+)
 
 
 class AtlassianJiraClient:
-# ... (rest of Jira client remains same until RealHarborClient)
+    # ... (rest of Jira client remains same until RealHarborClient)
     def __init__(self, url: str, user: str, token: str, project_key: str = "PRODENG"):
         self.url = url.rstrip("/")
         self.auth = (user, token)
@@ -110,7 +116,7 @@ class SingleRegistryHarborClient:
             return resp.status_code == 200
         elif kind == ActionKind.CREATE_ROBOT:
             name = payload.get("name")
-            # For robots, we search for the specific name. 
+            # For robots, we search for the specific name.
             # Note: Harbor 2.x robots can be system-wide or project-specific.
             resp = requests.get(
                 f"{self.url}/api/v2.0/robots",
