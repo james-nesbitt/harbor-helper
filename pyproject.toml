@@ -44,6 +44,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "ollama: tests that require a running Ollama instance (skipped by default)",
+]
 
 [tool.coverage.run]
 source = ["src/harbor_helper"]

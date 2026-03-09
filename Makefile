@@ -11,6 +11,9 @@ install-dev:
 test:
 	uv run pytest tests/ -v --cov=src/harbor_helper --cov-report=term-missing
 
+test-all:
+	uv run pytest tests/ -v --run-ollama --cov=src/harbor_helper --cov-report=term-missing
+
 lint:
 	uv run ruff check .
 
