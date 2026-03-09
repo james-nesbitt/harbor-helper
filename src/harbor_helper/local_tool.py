@@ -8,10 +8,10 @@ import sys
 import uuid
 import os
 from .app import HarborHelper
-from .models import RequestContext, ActionKind, ProposedAction
+from .models import RequestContext, ActionKind, ProposedAction, HarborRegistryConfig
 from .interpreter_ollama import OllamaInterpreter
 from .mocks import MockJiraClient, MockHarborClient, MockMessenger
-from .clients import AtlassianJiraClient, RealHarborClient
+from .clients import AtlassianJiraClient, MultiRegistryHarborClient
 from .slack import SlackMessenger
 
 # Configure logging
@@ -31,11 +31,29 @@ def main():
     parser.add_argument("--model", default="mistral", help="LLM model name")
     parser.add_argument("--verbose", action="store_true", help="Display LLM prompt, response, and side-effects")
     parser.add_argument("--repl", action="store_true", help="Run in interactive REPL mode")
+    parser.add_argument("--registry", action="append", help="Harbor registry config (nickname:url:user:pass)")
 
     args = parser.parse_args()
 
     if not args.repl and not args.query:
         parser.error("Either 'query' or '--repl' is required.")
+
+    # Parse registries
+    registry_configs = []
+    if args.registry:
+        for reg_str in args.registry:
+            parts = reg_str.split(":", 3)
+            if len(parts) == 4:
+                registry_configs.append(HarborRegistryConfig(
+                    nickname=parts[0], url=parts[1], user=parts[2], password=parts[3]
+                ))
+    
+    # Fallback to dev/prod mocks if none provided
+    if not registry_configs:
+        registry_configs = [
+            HarborRegistryConfig("dev", "http://dev-harbor", "admin", "pass"),
+            HarborRegistryConfig("prod", "http://prod-harbor", "admin", "pass"),
+        ]
 
     # Determine clients based on flag
     if args.real_api:
@@ -45,11 +63,7 @@ def main():
             user=os.getenv("HARBOR_HELPER_JIRA_USER"),
             token=os.getenv("HARBOR_HELPER_JIRA_TOKEN")
         )
-        harbor = RealHarborClient(
-            url=os.getenv("HARBOR_HELPER_HARBOR_URL"),
-            user=os.getenv("HARBOR_HELPER_HARBOR_USER"),
-            password=os.getenv("HARBOR_HELPER_HARBOR_PASS")
-        )
+        harbor = MultiRegistryHarborClient(registry_configs)
         messenger = SlackMessenger(bot_token=os.getenv("SLACK_BOT_TOKEN"))
     else:
         logger.info("Using MOCKED API clients for JIRA, Harbor, and Slack")
@@ -57,8 +71,13 @@ def main():
         harbor = MockHarborClient()
         messenger = MockMessenger(interactive=not args.non_interactive)
 
-    # Use Ollama for interpretation (this tool's primary goal)
-    interpreter = OllamaInterpreter(model=args.model, url=args.ollama_url, verbose=args.verbose)
+    # Use Ollama for interpretation
+    interpreter = OllamaInterpreter(
+        model=args.model, 
+        url=args.ollama_url, 
+        available_targets=[cfg.nickname for cfg in registry_configs],
+        verbose=args.verbose
+    )
 
     # Core logic
     helper = HarborHelper(

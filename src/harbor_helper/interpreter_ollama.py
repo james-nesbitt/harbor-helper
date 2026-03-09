@@ -5,12 +5,13 @@ Implements the 'Embedded LLM' requirement using Pydantic for safety.
 
 import requests
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .models import ProposedAction, ActionKind
 
 
 class LLMResponse(BaseModel):
     kind: ActionKind
+    target_id: str
     summary: str
     details: str
     reasoning: str
@@ -22,22 +23,28 @@ class OllamaInterpreter:
         self,
         model: str = "mistral",
         url: str = "http://localhost:11434/api/chat",
+        available_targets: List[str] = None,
         verbose: bool = False,
     ):
         self.model = model
         self.url = url
+        self.available_targets = available_targets or ["default"]
         self.verbose = verbose
 
     def interpret(self, raw_text: str) -> ProposedAction:
+        targets_str = ", ".join([f"'{t}'" for t in self.available_targets])
         prompt = f"""
         Interpret this request for a Harbor OCI registry: "{raw_text}"
         
+        Available target registries: {targets_str}
+
         Return ONLY valid JSON matching this schema:
         {{
             "kind": "harbor-manage-projects" or "harbor-new-robot",
+            "target_id": one of {targets_str},
             "summary": "short string",
             "details": "longer string describing the plan",
-            "reasoning": "why you chose this action",
+            "reasoning": "why you chose this action and this target",
             "payload": {{ ... action specific params ... }}
         }}
         """
@@ -67,6 +74,7 @@ class OllamaInterpreter:
 
             return ProposedAction(
                 kind=validated.kind,
+                target_id=validated.target_id,
                 summary=validated.summary,
                 details=validated.details,
                 reasoning=validated.reasoning,

@@ -33,7 +33,9 @@ def test_peer_review_enforcement(
     ctx = RequestContext(
         "new project", "alice", "chan-1", "ts-1", jira_key="PRODENG-123"
     )
-    action = ProposedAction(ActionKind.CREATE_PROJECT, "sum", "det", "re", {})
+    action = ProposedAction(
+        ActionKind.CREATE_PROJECT, "dev", "sum", "det", "re", {}
+    )
 
     # Alice tries to approve her own request
     helper.handle_approval(ctx, action, approver_id="alice")
@@ -52,7 +54,7 @@ def test_credential_privacy_dm(
         mock_interpreter, mock_jira, mock_harbor, mock_messenger, approved_engineers
     )
     ctx = RequestContext("new robot", "alice", "chan-1", "ts-1", jira_key="PRODENG-123")
-    action = ProposedAction(ActionKind.CREATE_ROBOT, "sum", "det", "re", {})
+    action = ProposedAction(ActionKind.CREATE_ROBOT, "dev", "sum", "det", "re", {})
 
     # Mock Harbor returning a secret
     mock_harbor.execute.return_value = ExecutionResult(

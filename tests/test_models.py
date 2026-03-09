@@ -23,6 +23,7 @@ def test_request_context_frozen():
 def test_proposed_action_payload():
     p = ProposedAction(
         kind=ActionKind.CREATE_PROJECT,
+        target_id="dev",
         summary="Create project",
         details="Details",
         reasoning="Reasoning",

@@ -40,6 +40,7 @@ class MockJiraClient:
 
 class MockHarborClient:
     def execute(self, action: ProposedAction) -> ExecutionResult:
+        logger.info(f"[MOCK HARBOR] Target Registry: {action.target_id}")
         logger.info(f"[MOCK HARBOR] Executing action: {action.kind}")
         logger.info(f"[MOCK HARBOR] Payload: {json.dumps(action.payload, indent=2)}")
         
@@ -74,6 +75,7 @@ class MockMessenger:
         print(f"[MOCK SLACK] APPROVAL REQUEST")
         print(f"Requester: {context.requester_id}")
         print(f"JIRA: {context.jira_key}")
+        print(f"Backend Target: {action.target_id}")
         print(f"Action: {action.summary}")
         print(f"Details: {action.details}")
         print(f"Reasoning: {action.reasoning}")

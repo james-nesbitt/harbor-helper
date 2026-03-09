@@ -35,11 +35,22 @@ class RequestContext:
     jira_key: Optional[str] = None
 
 
+@dataclass(frozen=True)
+class HarborRegistryConfig:
+    """Config for a single Harbor registry instance."""
+
+    nickname: str
+    url: str
+    user: str
+    password: str
+
+
 @dataclass
 class ProposedAction:
     """The LLM's interpretation of what needs to change."""
 
     kind: ActionKind
+    target_id: str  # The nickname of the service/registry to target
     summary: str
     details: str
     reasoning: str

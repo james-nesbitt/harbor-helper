@@ -16,6 +16,7 @@ def test_ollama_interpretation_success(interpreter):
             "content": json.dumps(
                 {
                     "kind": "harbor-manage-projects",
+                    "target_id": "default",
                     "summary": "Create Project",
                     "details": "Create 'team-alpha'",
                     "reasoning": "User asked for alpha",
