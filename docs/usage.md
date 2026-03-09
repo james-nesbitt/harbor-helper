@@ -13,7 +13,7 @@ Currently, the agent is interactable via a CLI stub (Slack integration in progre
 ### CLI Usage
 
 ```bash
-python -m harbor_helper "I need a new Harbor project for my team"
+harbor-helper-local "I need a new Harbor project for my team"
 ```
 
 1. **Interpretation**: The agent will describe the planned change.
