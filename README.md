@@ -23,15 +23,29 @@ This project is built using a **Spec and Intent-Driven** development approach.
 make install-dev
 ```
 
-### Running Locally (Development)
+### Running Locally (Development and Mocking)
+
+You can run the full agent workflow locally using mocks. This is the preferred way to test LLM interpretations and user interaction flows without needing Harbor, JIRA, or Slack credentials.
 
 ```bash
-# Run the CLI with a stub request
-uv run python -m harbor_helper "I need a new Harbor project"
+# INTERACTIVE: Follow the full flow, including approval prompt
+make run
 
-# Run non-interactive for testing
+# NON-INTERACTIVE: Auto-approve using the stub/mock flow
 make run-stub
+
+# TUNABLE: Override the LLM model or URL via environment variables
+make run LLM_MODEL=llama3 OLLAMA_URL=http://my-gpu-server:11434/api/chat
+
+# ADVANCED: Directly using the local tool with options
+uv run harbor-helper-local "Create a new Harbor robot for the automation team" --user U001 --approver U002
 ```
+
+The local tool simulations:
+- **JIRA**: Increments mock ticket IDs (e.g., `PRODENG-100`).
+- **Slack**: Consistently outputs message blocks and threads to the console.
+- **Harbor**: Returns successful mock responses for Project and Robot creation.
+- **Ollama**: Requires a local Ollama instance running by default.
 
 ### Testing
 

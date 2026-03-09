@@ -36,6 +36,7 @@ dev = [
 
 [project.scripts]
 harbor-helper = "harbor_helper.main:main"
+harbor-helper-local = "harbor_helper.local_tool:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

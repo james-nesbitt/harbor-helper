@@ -17,12 +17,16 @@ lint:
 format:
 	uv run ruff format .
 
-run:
-	uv run python -m harbor_helper "I need a new Harbor project"
+# --- Local development configuration ---
+OLLAMA_URL ?= http://localhost:11434/api/chat
+LLM_MODEL ?= mistral
 
-# Non-interactive run (e.g. CI or script)
+run:
+	uv run harbor-helper-local --ollama-url $(OLLAMA_URL) --model $(LLM_MODEL) "I need a new Harbor project"
+
+# Non-interactive run (local tool)
 run-stub:
-	uv run python -m harbor_helper --non-interactive "create a new robot account"
+	uv run harbor-helper-local --non-interactive --ollama-url $(OLLAMA_URL) --model $(LLM_MODEL) "create a new robot account"
 
 build:
 	uv build
