@@ -20,6 +20,9 @@ lint:
 format:
 	uv run ruff format .
 
+check: lint
+	uv run ruff format --check .
+
 # --- Local development configuration ---
 OLLAMA_URL ?= http://localhost:11434/api/chat
 LLM_MODEL ?= mistral
