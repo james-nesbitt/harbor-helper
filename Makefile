@@ -7,6 +7,7 @@ install:
 
 install-dev:
 	uv sync --all-extras
+	git config core.hooksPath .githooks
 
 test:
 	uv run pytest tests/ -v --cov=src/harbor_helper --cov-report=term-missing
