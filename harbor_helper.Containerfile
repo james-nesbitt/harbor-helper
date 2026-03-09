@@ -1,6 +1,6 @@
 # Packaging for Kubernetes (SPEC §6). Multi-stage build using uv.
 
-FROM ghcr.io/astral-sh/uv:python3.12-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-alpine AS builder
 WORKDIR /build
 
 # Build wheel only; no dev deps in final image
