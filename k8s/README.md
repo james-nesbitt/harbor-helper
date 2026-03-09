@@ -7,14 +7,14 @@
 
 OCI artifacts (container images) must be pushed to:
 
-- **Dev:** `oci://registry.ci.mirantis.com/jnesbitt/` → use `make docker-push-dev`
-- **Production:** `registry.mirantis.com/jnesbitt/` → use `make docker-push-prod`
+- **Dev:** `oci://registry.ci.mirantis.com/jnesbitt/` → use `make image-push-dev`
+- **Production:** `registry.mirantis.com/jnesbitt/` → use `make image-push-prod`
 
 **Podman** is the preferred tool for building OCI images (`CONTAINER_CLI=podman` by default; set to `docker` if needed).
 
 ## Prerequisites
 
-- Container image built and available to the cluster (e.g. `make docker-build` then `make docker-push-dev` or `make docker-push-prod`). Builds use podman by default.
+- Container image built and available to the cluster (e.g. `make image-build` then `make image-push-dev` or `make image-push-prod`). Builds use podman by default.
 - Create a Secret for sensitive env (approved engineers list, API tokens) and reference it in the Deployment `envFrom` (uncomment `secretRef` and create `harbor-helper-secrets`).
 
 ## Apply manifests
@@ -28,7 +28,7 @@ Default deployment image is `registry.ci.mirantis.com/jnesbitt/harbor-helper:0.1
 ## Building and pushing the image
 
 ```bash
-make docker-build       # uses podman by default (CONTAINER_CLI=podman)
-make docker-push-dev    # push to registry.ci.mirantis.com/jnesbitt/ (dev)
-make docker-push-prod   # push to registry.mirantis.com/jnesbitt/ (production)
+make image-build        # uses podman by default (CONTAINER_CLI=podman)
+make image-push-dev     # push to registry.ci.mirantis.com/jnesbitt/ (dev)
+make image-push-prod    # push to registry.mirantis.com/jnesbitt/ (production)
 ```
