@@ -4,7 +4,7 @@ This document describes how to use Harbor Helper to manage Harbor OCI registries
 
 ## Overview
 
-Harbor Helper listens for requests from approved ops engineers on Slack, interprets them using an AI agent, and creates JIRA tickets to track and audit the changes. All changes require peer approval before execution.
+Harbor Helper listens for requests from approved ops engineers on Slack, interprets them using an AI agent, and uses existing JIRA tickets to track and audit the changes. All changes require peer approval before execution.
 
 ## Interacting with the Agent
 
@@ -35,5 +35,5 @@ The following environment variables can be used to configure the application's b
 ## Workflow Policies
 
 - **Peer Review**: By default, the person requesting a change cannot be the one to approve it.
-- **JIRA Integration**: Every request must be tied to a `PRODENG` JIRA ticket. If one isn't provided, Harbor Helper will create one.
+- **JIRA Integration**: Every request must be tied to an existing `PRODENG` or `IT` JIRA ticket. If no ticket ID is provided in the request, or if the ticket belongs to another project, the request will be rejected.
 - **Credentials**: Robot tokens are never posted in public channels. They are sent via Direct Message (DM) to the requester.

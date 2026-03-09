@@ -36,16 +36,21 @@ class HarborHelper:
             )
             return
 
-        # 1.5. Check for JIRA project (SPEC Requirement 8)
-        # If a ticket is provided, it must be in the "PRODENG" project.
-        if context.jira_key and not context.jira_key.startswith("PRODENG-"):
+        # 1.5. Check for JIRA project (SPEC Requirement 8 and workflow)
+        # Every request MUST be associated with an existing JIRA ticket from the 'PRODENG' or 'IT' projects.
+        is_valid_project = context.jira_key and (
+            context.jira_key.startswith("PRODENG-") or context.jira_key.startswith("IT-")
+        )
+        if not is_valid_project:
             self.messenger.reply(
                 context,
-                f"Error: Only tickets in the 'PRODENG' project are supported. Provided: {context.jira_key}",
+                "Error: A JIRA ticket ID in the 'PRODENG' or 'IT' projects is required to process this request. "
+                "Please provide a ticket ID (e.g., PRODENG-123 or IT-456).",
             )
             return
 
         # 2. Audit Trail Start (SPEC §5)
+        # Ensure we have the ticket key (the client will just return it if it already exists in context)
         jira_key = self.jira.create_ticket(context)
         context = RequestContext(**{**context.__dict__, "jira_key": jira_key})
         self.jira.update_status(jira_key, "IN_PROGRESS")

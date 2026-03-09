@@ -31,7 +31,7 @@ Feature set 1: Harbor OCI registries: various Harbor registries will be modified
 - Requirement 5: the project should include an app, tests for the app, a distribution for the app and tooling for building, packaging and distribution the app;
 - Requirement 6: The project should include unit and functional testing;
 - Requirement 7: All communication and API interactions should be testable using API mocks.
-- Requirement 8: Only JIRA tickets within the "PRODENG" project shall be managed or updated by the application. Requests referencing tickets in other projects must be rejected.
+- Requirement 8: Only JIRA tickets within the "PRODENG" or "IT" projects shall be managed or updated by the application. Requests referencing tickets in other projects must be rejected.
 - Requirement 9: All code generated and maintained in this project should be linted and formatted according to industry standards. Tooling for this should be included.
 - Requirement 10: `uv` shall be used as the primary tool for Python environment management, dependency resolution, and tool execution.
 - Requirement 11: The root `README.md` shall be developer-oriented (installation, build instructions, development workflow). End-user and administrative usage documentation shall be stored in a dedicated `/docs` directory.
@@ -57,7 +57,7 @@ Users interact via supported communication platforms (e.g., Slack); the system m
 ## 5. Workflow
 
 1. **Request**: User makes a request in Slack.
-2. **Ticket Creation**: Every request must be associated with a JIRA ticket. If no Ticket ID is provided, the system creates a new JIRA 'Task' in the 'PRODENG' project. If a Ticket ID is provided, it must belong to the 'PRODENG' project.
+2. **Ticket Association**: Every request MUST be associated with an existing JIRA ticket from the 'PRODENG' or 'IT' projects. The system will NOT create new JIRA tickets. If no Ticket ID is provided, or if the provided ID belongs to a different project, the request must be rejected.
 3. **Interpretation**: The LLM interprets the request. The reasoning and planned change details are posted to the JIRA ticket as a comment.
 4. **Approval**: The system posts the plan to Slack and waits for an Approver.
 5. **Execution**: Once approved, the system executes the change in Harbor, updates the JIRA ticket status, and sends credentials via Slack DM.
