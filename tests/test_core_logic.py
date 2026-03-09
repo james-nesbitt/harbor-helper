@@ -141,3 +141,33 @@ def test_jira_project_enforcement(
     helper.handle_request(ctx_it)
     assert mock_jira.create_ticket.call_count == 2
     assert mock_interpreter.interpret.call_count == 2
+
+
+def test_existence_validation_rejection(
+    mock_interpreter, mock_jira, mock_harbor, mock_messenger, approved_engineers
+):
+    helper = HarborHelper(
+        mock_interpreter, mock_jira, mock_harbor, mock_messenger, approved_engineers
+    )
+    ctx = RequestContext(
+        "create project alpha", "alice", "chan-1", "ts-1", jira_key="PRODENG-123"
+    )
+
+    # LLM proposes the action
+    action = ProposedAction(
+        ActionKind.CREATE_PROJECT, "dev", "Create Alpha", "Details", "Reasoning", {"project_name": "alpha"}
+    )
+    mock_interpreter.interpret.return_value = action
+
+    # Harbor reports it already exists
+    mock_harbor.resource_exists.return_value = True
+
+    helper.handle_request(ctx)
+
+    # Verify: Request rejected, never asked for approval
+    mock_harbor.resource_exists.assert_called_once_with(action.kind, action.target_id, action.payload)
+    mock_messenger.ask_for_approval.assert_not_called()
+    
+    args, _ = mock_messenger.reply.call_args
+    assert "already exists" in args[1]
+    mock_jira.update_status.assert_any_call("PRODENG-123", "REJECTED")

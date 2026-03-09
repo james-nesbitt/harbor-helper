@@ -20,6 +20,10 @@ class HarborClient(Protocol):
 
     def execute(self, action: ProposedAction) -> ExecutionResult: ...
 
+    def resource_exists(
+        self, kind: ActionKind, target_id: str, payload: Dict[str, Any]
+    ) -> bool: ...
+
 
 class Messenger(Protocol):
     """SPEC §1: Communication via Slack."""

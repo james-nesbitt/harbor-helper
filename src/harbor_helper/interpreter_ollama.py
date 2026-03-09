@@ -45,7 +45,11 @@ class OllamaInterpreter:
             "summary": "short string",
             "details": "longer string describing the plan",
             "reasoning": "why you chose this action and this target",
-            "payload": {{ ... action specific params ... }}
+            "payload": {{ 
+                "project_name": "string (required for harbor-manage-projects)",
+                "name": "string (required for harbor-new-robot)",
+                "level": "system" or "project" (optional, for robots)
+            }}
         }}
         """
 

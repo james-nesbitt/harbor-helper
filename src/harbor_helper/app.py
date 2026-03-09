@@ -59,6 +59,14 @@ class HarborHelper:
             # 3. Interpretation (Embedded LLM)
             action = self.interpreter.interpret(context.raw_text)
 
+            # 3.5. Existence Check (INTENT: Be sure operation is correct)
+            if self.harbor.resource_exists(action.kind, action.target_id, action.payload):
+                msg = f"Validation Error: The requested resource already exists on '{action.target_id}'."
+                self.messenger.reply(context, msg)
+                self.jira.add_comment(jira_key, msg)
+                self.jira.update_status(jira_key, "REJECTED")
+                return
+
             # Log reasoning to JIRA (INTENT: Auditability)
             self.jira.add_comment(jira_key, f"LLM Reasoning: {action.reasoning}")
 

@@ -39,23 +39,40 @@ class MockJiraClient:
 
 
 class MockHarborClient:
+    def __init__(self, existing_projects: List[str] = None, existing_robots: List[str] = None):
+        self.existing_projects = existing_projects or []
+        self.existing_robots = existing_robots or []
+
     def execute(self, action: ProposedAction) -> ExecutionResult:
         logger.info(f"[MOCK HARBOR] Target Registry: {action.target_id}")
         logger.info(f"[MOCK HARBOR] Executing action: {action.kind}")
         logger.info(f"[MOCK HARBOR] Payload: {json.dumps(action.payload, indent=2)}")
         
         if action.kind == ActionKind.CREATE_PROJECT:
+            name = action.payload.get('project_name')
+            if name in self.existing_projects:
+                return ExecutionResult(success=False, data={}, error=f"Conflict: Project '{name}' already exists in this registry.")
             return ExecutionResult(
                 success=True, 
-                data={"location": f"/api/v2.0/projects/{action.payload.get('project_name', 'new-project')}"}
+                data={"location": f"/api/v2.0/projects/{name or 'new-project'}"}
             )
         elif action.kind == ActionKind.CREATE_ROBOT:
+            name = action.payload.get('name')
+            if name in self.existing_robots:
+                return ExecutionResult(success=False, data={}, error=f"Conflict: Robot account '{name}' already exists in this registry.")
             return ExecutionResult(
                 success=True, 
-                data={"id": 123, "name": action.payload.get("name"), "secret": "mock-robot-secret-123"}
+                data={"id": 123, "name": name, "secret": "mock-robot-secret-123"}
             )
         
         return ExecutionResult(success=False, data={}, error=f"Unknown kind {action.kind}")
+
+    def resource_exists(self, kind: ActionKind, target_id: str, payload: Dict[str, Any]) -> bool:
+        if kind == ActionKind.CREATE_PROJECT:
+            return payload.get("project_name") in self.existing_projects
+        elif kind == ActionKind.CREATE_ROBOT:
+            return payload.get("name") in self.existing_robots
+        return False
 
 
 class MockMessenger:

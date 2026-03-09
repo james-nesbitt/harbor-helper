@@ -68,6 +68,7 @@ class SingleRegistryHarborClient:
             return ExecutionResult(success=False, data={}, error=str(e))
 
     def _create_project(self, payload: Dict[str, Any]) -> ExecutionResult:
+        project_name = payload.get("project_name")
         resp = requests.post(
             f"{self.url}/api/v2.0/projects", auth=self.auth, json=payload
         )
@@ -75,15 +76,51 @@ class SingleRegistryHarborClient:
             return ExecutionResult(
                 success=True, data={"location": resp.headers.get("Location")}
             )
+        if resp.status_code == 409:
+            return ExecutionResult(
+                success=False,
+                data={},
+                error=f"Conflict: Project '{project_name}' already exists in this registry.",
+            )
         return ExecutionResult(success=False, data={}, error=resp.text)
 
     def _create_robot(self, payload: Dict[str, Any]) -> ExecutionResult:
+        robot_name = payload.get("name")
         resp = requests.post(
             f"{self.url}/api/v2.0/robots", auth=self.auth, json=payload
         )
         if resp.status_code == 201:
             return ExecutionResult(success=True, data=resp.json())
+        if resp.status_code == 409:
+            return ExecutionResult(
+                success=False,
+                data={},
+                error=f"Conflict: Robot account '{robot_name}' already exists in this registry.",
+            )
         return ExecutionResult(success=False, data={}, error=resp.text)
+
+    def resource_exists(self, kind: ActionKind, payload: Dict[str, Any]) -> bool:
+        if kind == ActionKind.CREATE_PROJECT:
+            name = payload.get("project_name")
+            resp = requests.head(
+                f"{self.url}/api/v2.0/projects",
+                auth=self.auth,
+                params={"project_name": name},
+            )
+            return resp.status_code == 200
+        elif kind == ActionKind.CREATE_ROBOT:
+            name = payload.get("name")
+            # For robots, we search for the specific name. 
+            # Note: Harbor 2.x robots can be system-wide or project-specific.
+            resp = requests.get(
+                f"{self.url}/api/v2.0/robots",
+                auth=self.auth,
+                params={"q": f"name={name}"},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                return len(data) > 0
+        return False
 
 
 class MultiRegistryHarborClient:
@@ -105,3 +142,11 @@ class MultiRegistryHarborClient:
                 error=f"Registry '{action.target_id}' not found. Available: {available}",
             )
         return client.execute(action)
+
+    def resource_exists(
+        self, kind: ActionKind, target_id: str, payload: Dict[str, Any]
+    ) -> bool:
+        client = self.registries.get(target_id)
+        if not client:
+            return False
+        return client.resource_exists(kind, payload)

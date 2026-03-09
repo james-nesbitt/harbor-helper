@@ -32,6 +32,8 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Display LLM prompt, response, and side-effects")
     parser.add_argument("--repl", action="store_true", help="Run in interactive REPL mode")
     parser.add_argument("--registry", action="append", help="Harbor registry config (nickname:url:user:pass)")
+    parser.add_argument("--existing-project", action="append", help="Simulate existing project in mocks")
+    parser.add_argument("--existing-robot", action="append", help="Simulate existing robot in mocks")
 
     args = parser.parse_args()
 
@@ -68,7 +70,10 @@ def main():
     else:
         logger.info("Using MOCKED API clients for JIRA, Harbor, and Slack")
         jira = MockJiraClient()
-        harbor = MockHarborClient()
+        harbor = MockHarborClient(
+            existing_projects=args.existing_project,
+            existing_robots=args.existing_robot
+        )
         messenger = MockMessenger(interactive=not args.non_interactive)
 
     # Use Ollama for interpretation
